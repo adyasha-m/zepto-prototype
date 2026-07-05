@@ -1,0 +1,1336 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zepto Consent Redesign — Clickable Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --violet: #5b21b6;
+        --violet-dark: #2e1065;
+        --violet-soft: #f2eefb;
+        --lavender-line: #e4dbfa;
+        --teal: #0d9488;
+        --teal-soft: #e6f5f3;
+        --amber: #d97706;
+        --amber-soft: #fdf0df;
+        --ink: #1e1b2e;
+        --muted: #716c82;
+        --white: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background:
+          radial-gradient(circle at 15% 10%, #ece4fb 0%, transparent 45%),
+          radial-gradient(circle at 85% 90%, #e3f3f1 0%, transparent 45%),
+          #faf9fc;
+        font-family: "Manrope", system-ui, sans-serif;
+        color: var(--ink);
+      }
+      .stage {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px 56px;
+        gap: 18px;
+      }
+      .stage-label {
+        text-align: center;
+      }
+      .stage-label .eyebrow {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: var(--violet);
+        text-transform: uppercase;
+      }
+      .stage-label h1 {
+        font-family: "Fraunces", serif;
+        font-weight: 600;
+        font-size: 26px;
+        margin: 6px 0 4px;
+        color: var(--ink);
+      }
+      .stage-label p {
+        font-size: 13.5px;
+        color: var(--muted);
+        margin: 0;
+        max-width: 420px;
+      }
+
+      /* ---------- phone frame ---------- */
+      .phone {
+        position: relative;
+        width: 375px;
+        height: 762px;
+        background: var(--white);
+        border-radius: 46px;
+        box-shadow:
+          0 30px 60px -20px rgba(46, 16, 101, 0.35),
+          0 0 0 10px #17102c,
+          0 0 0 12px #2b2440;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .notch {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 150px;
+        height: 26px;
+        background: #17102c;
+        border-radius: 0 0 18px 18px;
+        z-index: 50;
+      }
+      .statusbar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 46px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 0 22px 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+        z-index: 40;
+      }
+      .statusbar .icons {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
+      .homebar {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 5px;
+        border-radius: 4px;
+        background: #ddd7ee;
+        z-index: 50;
+      }
+
+      .screens {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        background: var(--white);
+        padding-top: 46px;
+        opacity: 0;
+        transition: opacity 0.28s ease;
+      }
+      .screen.active {
+        display: flex;
+        opacity: 1;
+      }
+
+      .scr-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px 22px 18px;
+      }
+      .scr-body::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+      }
+
+      .app-header {
+        padding: 6px 22px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid #f0edf8;
+      }
+      .back-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--violet-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--violet);
+        font-size: 16px;
+        cursor: pointer;
+        border: none;
+        flex-shrink: 0;
+      }
+      .app-header h2 {
+        font-size: 16.5px;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .primary-btn {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 14px 18px;
+        background: var(--violet);
+        color: var(--white);
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition:
+          opacity 0.15s,
+          transform 0.1s;
+      }
+      .primary-btn:active {
+        transform: scale(0.98);
+      }
+      .primary-btn:disabled {
+        background: #d8d0ee;
+        color: #9c8fc4;
+        cursor: not-allowed;
+      }
+      .ghost-btn {
+        width: 100%;
+        border: 1.5px solid var(--lavender-line);
+        border-radius: 14px;
+        padding: 12px 18px;
+        background: var(--white);
+        color: var(--violet);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        margin-top: 10px;
+      }
+      .footer-cta {
+        padding: 16px 22px 22px;
+        border-top: 1px solid #f0edf8;
+      }
+      .link-text {
+        text-align: center;
+        font-size: 12.5px;
+        color: var(--muted);
+        margin-top: 12px;
+      }
+      .link-text u {
+        color: var(--violet);
+        cursor: pointer;
+      }
+
+      /* --- splash --- */
+      #scr-splash .scr-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(
+          160deg,
+          var(--violet-dark),
+          var(--violet) 65%
+        );
+        margin: -46px 0 0;
+        padding-top: 46px;
+        height: 100%;
+      }
+      .logo-mark {
+        width: 74px;
+        height: 74px;
+        border-radius: 22px;
+        background: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 18px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      }
+      .logo-mark svg {
+        width: 38px;
+        height: 38px;
+      }
+      #scr-splash h1 {
+        color: var(--white);
+        font-family: "Fraunces", serif;
+        font-size: 30px;
+        font-weight: 600;
+        margin: 0 0 6px;
+      }
+      #scr-splash p {
+        color: #d9cff2;
+        font-size: 14px;
+        margin: 0 0 40px;
+      }
+      #scr-splash .primary-btn {
+        width: 220px;
+        background: var(--white);
+        color: var(--violet);
+      }
+
+      /* --- consent rows --- */
+      .consent-row {
+        display: flex;
+        gap: 12px;
+        padding: 14px 0;
+        border-bottom: 1px solid #f1eef9;
+      }
+      .consent-row:last-child {
+        border-bottom: none;
+      }
+      .c-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: var(--violet-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .c-icon svg {
+        width: 19px;
+        height: 19px;
+      }
+      .c-text {
+        flex: 1;
+      }
+      .c-text .t {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0 0 2px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .c-text .d {
+        font-size: 12.5px;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.4;
+      }
+      .tag {
+        font-size: 10px;
+        font-weight: 800;
+        padding: 2px 7px;
+        border-radius: 20px;
+        letter-spacing: 0.5px;
+      }
+      .tag.required {
+        background: var(--teal-soft);
+        color: var(--teal);
+      }
+      .tag.optional {
+        background: var(--amber-soft);
+        color: var(--amber);
+      }
+
+      /* toggle switch */
+      .switch {
+        position: relative;
+        width: 44px;
+        height: 26px;
+        border-radius: 20px;
+        background: #e3def3;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: background 0.18s;
+        align-self: center;
+      }
+      .switch.on {
+        background: var(--teal);
+      }
+      .switch.locked {
+        background: #cfc7e8;
+        cursor: default;
+      }
+      .switch .knob {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--white);
+        transition: left 0.18s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      }
+      .switch.on .knob {
+        left: 21px;
+      }
+      .lock-ic {
+        align-self: center;
+        color: #a69bc4;
+        font-size: 15px;
+      }
+
+      /* --- home / browse --- */
+      .search-bar {
+        background: var(--violet-soft);
+        border-radius: 12px;
+        padding: 11px 14px;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .cat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .cat-card {
+        border: 1.5px solid #f0edf8;
+        border-radius: 16px;
+        padding: 16px 14px;
+        cursor: pointer;
+        transition:
+          transform 0.1s,
+          border-color 0.15s;
+        position: relative;
+      }
+      .cat-card:active {
+        transform: scale(0.97);
+      }
+      .cat-card.highlight {
+        border-color: var(--teal);
+        background: var(--teal-soft);
+      }
+      .cat-card .emoji {
+        font-size: 26px;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .cat-card .name {
+        font-size: 13.5px;
+        font-weight: 700;
+      }
+      .cat-card .badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--teal);
+        color: white;
+        font-size: 8.5px;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 8px;
+      }
+
+      .info-box {
+        background: var(--violet-soft);
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin: 14px 0;
+      }
+      .info-box .h {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--violet);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 8px;
+      }
+      .info-box ul {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 13px;
+        color: var(--ink);
+        line-height: 1.6;
+      }
+      .info-box.teal {
+        background: var(--teal-soft);
+      }
+      .info-box.teal .h {
+        color: var(--teal);
+      }
+
+      .product-card {
+        border: 1.5px solid #f0edf8;
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .product-card .pic {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        background: var(--teal-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        flex-shrink: 0;
+      }
+      .product-card .pname {
+        font-weight: 700;
+        font-size: 14.5px;
+        margin: 0 0 2px;
+      }
+      .product-card .pmeta {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .product-card .price {
+        font-weight: 800;
+        font-size: 14.5px;
+        margin-left: auto;
+      }
+
+      .qty-pill {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--violet);
+        color: white;
+        border-radius: 12px;
+        padding: 9px 16px;
+        justify-content: center;
+        font-weight: 700;
+        margin-top: 16px;
+      }
+      .qty-pill button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .confirm-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        flex: 1;
+        padding: 0 22px;
+      }
+      .check-circle {
+        width: 78px;
+        height: 78px;
+        border-radius: 50%;
+        background: var(--teal-soft);
+        color: var(--teal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      .check-circle svg {
+        width: 38px;
+        height: 38px;
+      }
+      .confirm-wrap h2 {
+        font-size: 19px;
+        margin: 0 0 6px;
+      }
+      .confirm-wrap p {
+        font-size: 13.5px;
+        color: var(--muted);
+        margin: 0 0 26px;
+      }
+
+      .menu-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 15px 0;
+        border-bottom: 1px solid #f1eef9;
+        cursor: pointer;
+      }
+      .menu-row:active {
+        background: #faf8fe;
+      }
+      .menu-row .m-ic {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--violet-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .menu-row .m-ic svg {
+        width: 17px;
+        height: 17px;
+      }
+      .menu-row .m-text {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .menu-row .m-sub {
+        font-size: 11.5px;
+        color: var(--muted);
+        font-weight: 500;
+        margin-top: 1px;
+      }
+      .menu-row.highlight .m-ic {
+        background: var(--teal-soft);
+      }
+      .menu-row .chev {
+        color: #c7c0dd;
+        font-size: 16px;
+      }
+
+      .consent-center-row {
+        padding: 14px 0;
+        border-bottom: 1px solid #f1eef9;
+      }
+      .cc-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .cc-top .t {
+        font-size: 14px;
+        font-weight: 700;
+        flex: 1;
+      }
+      .cc-meta {
+        font-size: 11px;
+        color: var(--muted);
+        margin: 4px 0 0 50px;
+      }
+
+      .toast {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 80px;
+        background: var(--ink);
+        color: white;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 12.5px;
+        font-weight: 600;
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+        opacity: 0;
+        transform: translateY(10px);
+        transition:
+          opacity 0.25s,
+          transform 0.25s;
+        z-index: 60;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .toast .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--teal);
+        margin-top: 4px;
+        flex-shrink: 0;
+      }
+
+      .recap-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 16px;
+      }
+      .recap-row .rc {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--teal);
+        color: white;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        margin-top: 1px;
+      }
+      .recap-row p {
+        margin: 0;
+        font-size: 13.5px;
+        line-height: 1.45;
+      }
+      .recap-row b {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+      }
+
+      /* --- progress dots (outside frame) --- */
+      .progress {
+        display: flex;
+        gap: 7px;
+      }
+      .progress .d {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #dcd4f1;
+        transition:
+          background 0.2s,
+          width 0.2s;
+      }
+      .progress .d.on {
+        background: var(--violet);
+        width: 18px;
+        border-radius: 5px;
+      }
+
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+        text-align: center;
+        max-width: 340px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="stage-label">
+        <div class="eyebrow">Clickable Prototype</div>
+        <h1>Zepto — Consent Redesign</h1>
+        <p>
+          Happy path: sign up → order medicine → manage consent. Click through
+          each screen below.
+        </p>
+      </div>
+
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="statusbar">
+          <span>9:41</span>
+          <div class="icons">
+            <span>••••</span><span>Wi-Fi</span><span>🔋</span>
+          </div>
+        </div>
+
+        <div class="screens">
+          <!-- 1. SPLASH -->
+          <div class="screen active" id="scr-splash">
+            <div class="scr-body">
+              <div class="logo-mark">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M4 4h16l-7 8h7l-11 9 3-8H5l6-9H4z" fill="#5B21B6" />
+                </svg>
+              </div>
+              <h1>Zepto</h1>
+              <p>Groceries in minutes</p>
+              <button class="primary-btn" onclick="go('signup')">
+                Get started
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. STANDARD CONSENT / SIGNUP -->
+          <div class="screen" id="scr-signup">
+            <div class="app-header"><h2>Before you start</h2></div>
+            <div class="scr-body">
+              <p style="font-size: 13px; color: var(--muted); margin-top: 0">
+                We only ask for what's needed to get your order to you. Nothing
+                is bundled — you choose each one.
+              </p>
+
+              <div class="consent-row">
+                <div class="c-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#5B21B6"
+                    stroke-width="2"
+                  >
+                    <rect x="3" y="7" width="18" height="13" rx="2" />
+                    <path d="M8 7V5a4 4 0 018 0v2" />
+                  </svg>
+                </div>
+                <div class="c-text">
+                  <p class="t">
+                    Order &amp; delivery details
+                    <span class="tag required">REQUIRED</span>
+                  </p>
+                  <p class="d">
+                    Your address and order history, so we can get groceries to
+                    your door.
+                  </p>
+                </div>
+                <div class="lock-ic">🔒</div>
+              </div>
+
+              <div class="consent-row">
+                <div class="c-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#5B21B6"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z"
+                    />
+                    <circle cx="12" cy="9" r="2.5" />
+                  </svg>
+                </div>
+                <div class="c-text">
+                  <p class="t">
+                    Location <span class="tag required">REQUIRED</span>
+                  </p>
+                  <p class="d">
+                    So we can find the nearest rider and get to you fast.
+                  </p>
+                </div>
+                <div class="lock-ic">🔒</div>
+              </div>
+
+              <div class="consent-row">
+                <div class="c-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#5B21B6"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M3 8l9 6 9-6M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1z"
+                    />
+                  </svg>
+                </div>
+                <div class="c-text">
+                  <p class="t">
+                    Marketing messages
+                    <span class="tag optional">OPTIONAL · OFF</span>
+                  </p>
+                  <p class="d">
+                    Offers and updates. Off by default — turn on anytime in
+                    Settings.
+                  </p>
+                </div>
+                <div
+                  class="switch"
+                  id="sw-marketing"
+                  onclick="toggleSwitch('sw-marketing')"
+                >
+                  <div class="knob"></div>
+                </div>
+              </div>
+            </div>
+            <div class="footer-cta">
+              <button class="primary-btn" onclick="go('home')">
+                Agree &amp; continue
+              </button>
+              <p class="link-text">
+                <u onclick="alert('This would open the full Privacy Notice.')"
+                  >Read our Privacy Notice</u
+                >
+              </p>
+            </div>
+          </div>
+
+          <!-- 3. HOME / BROWSE -->
+          <div class="screen" id="scr-home">
+            <div class="app-header"><h2>Good afternoon 👋</h2></div>
+            <div class="scr-body">
+              <div class="search-bar">🔍 Search for atta, milk, chips...</div>
+              <div class="cat-grid">
+                <div class="cat-card">
+                  <span class="emoji">🥦</span>
+                  <div class="name">Fruits &amp; Veg</div>
+                </div>
+                <div class="cat-card">
+                  <span class="emoji">🥛</span>
+                  <div class="name">Dairy &amp; Bread</div>
+                </div>
+                <div class="cat-card">
+                  <span class="emoji">🍫</span>
+                  <div class="name">Snacks</div>
+                </div>
+                <div class="cat-card highlight" onclick="go('sensitive')">
+                  <span class="badge">1 more step</span>
+                  <span class="emoji">💊</span>
+                  <div class="name">Pharmacy</div>
+                </div>
+                <div class="cat-card">
+                  <span class="emoji">🧴</span>
+                  <div class="name">Beauty</div>
+                </div>
+                <div class="cat-card">
+                  <span class="emoji">🧹</span>
+                  <div class="name">Household</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. SENSITIVE DATA CONSENT (contextual) -->
+          <div class="screen" id="scr-sensitive">
+            <div class="app-header">
+              <button class="back-btn" onclick="go('home')">←</button>
+              <h2>One more thing for Pharmacy</h2>
+            </div>
+            <div class="scr-body">
+              <p style="font-size: 13.5px; line-height: 1.5; margin-top: 0">
+                Ordering medicines means handling
+                <b>health-related information</b> — like what you order and
+                prescription details. That's more sensitive than a grocery list,
+                so we ask separately, and it's never bundled with the rest.
+              </p>
+
+              <div class="info-box teal">
+                <p class="h">What we'll use it for</p>
+                <ul>
+                  <li>Fulfilling this order</li>
+                  <li>Verifying your prescription, where required</li>
+                </ul>
+              </div>
+              <div class="info-box">
+                <p class="h">What we won't do</p>
+                <ul>
+                  <li>No ads based on your health data</li>
+                  <li>Never shared with marketing partners</li>
+                </ul>
+              </div>
+
+              <div class="consent-row" style="border: none; padding-top: 6px">
+                <div class="c-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#5B21B6"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M19 14c1.5-1.5 2-3 2-4.5A4.5 4.5 0 0016.5 5c-1.5 0-2.5.5-4.5 2.5C10 5.5 9 5 7.5 5A4.5 4.5 0 003 9.5C3 11 3.5 12.5 5 14l7 7 7-7z"
+                    />
+                  </svg>
+                </div>
+                <div class="c-text">
+                  <p class="t">Share health data for Pharmacy orders</p>
+                  <p class="d">
+                    You can turn this off anytime from Consent Center.
+                  </p>
+                </div>
+                <div class="switch" id="sw-health" onclick="toggleHealth()">
+                  <div class="knob"></div>
+                </div>
+              </div>
+            </div>
+            <div class="footer-cta">
+              <button
+                class="primary-btn"
+                id="btn-health-continue"
+                disabled
+                onclick="go('pharmacy')"
+              >
+                Agree &amp; continue
+              </button>
+            </div>
+          </div>
+
+          <!-- 5. PHARMACY PRODUCT -->
+          <div class="screen" id="scr-pharmacy">
+            <div class="app-header">
+              <button class="back-btn" onclick="go('home')">←</button>
+              <h2>Pharmacy</h2>
+            </div>
+            <div class="scr-body">
+              <div class="product-card">
+                <div class="pic">💊</div>
+                <div style="flex: 1">
+                  <p class="pname">Paracetamol 500mg</p>
+                  <p class="pmeta">Strip of 15 tablets</p>
+                </div>
+                <div class="price">₹28</div>
+              </div>
+              <div class="qty-pill">
+                <button onclick="return false;">–</button><span>1</span
+                ><button onclick="return false;">+</button>
+              </div>
+            </div>
+            <div class="footer-cta">
+              <button class="primary-btn" onclick="go('confirm')">
+                Place order — ₹28
+              </button>
+            </div>
+          </div>
+
+          <!-- 6. ORDER CONFIRMED -->
+          <div class="screen" id="scr-confirm">
+            <div class="confirm-wrap">
+              <div class="check-circle">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </div>
+              <h2>Order placed!</h2>
+              <p>
+                Arriving in 10 minutes.<br />Your prescription info was kept
+                separate, just like you agreed.
+              </p>
+              <button class="primary-btn" onclick="go('profile')">
+                Manage my privacy settings
+              </button>
+            </div>
+          </div>
+
+          <!-- 7. PROFILE MENU -->
+          <div class="screen" id="scr-profile">
+            <div class="app-header"><h2>Your account</h2></div>
+            <div class="scr-body">
+              <div class="menu-row">
+                <div class="m-ic">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#5B21B6"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                </div>
+                <div class="m-text">Your orders</div>
+                <span class="chev">›</span>
+              </div>
+              <div class="menu-row">
+                <div class="m-ic">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#5B21B6"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z"
+                    />
+                  </svg>
+                </div>
+                <div class="m-text">Addresses</div>
+                <span class="chev">›</span>
+              </div>
+              <div class="menu-row">
+                <div class="m-ic">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#5B21B6"
+                    stroke-width="2"
+                  >
+                    <rect x="2" y="6" width="20" height="13" rx="2" />
+                    <path d="M2 10h20" />
+                  </svg>
+                </div>
+                <div class="m-text">Payment methods</div>
+                <span class="chev">›</span>
+              </div>
+              <div class="menu-row highlight" onclick="go('consentcenter')">
+                <div class="m-ic">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#0D9488"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <div class="m-text">Privacy &amp; Consent Center</div>
+                  <div class="m-sub">
+                    See &amp; change what you've agreed to
+                  </div>
+                </div>
+                <span class="chev">›</span>
+              </div>
+              <div class="menu-row">
+                <div class="m-ic">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#5B21B6"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="9" />
+                    <path
+                      d="M9.5 9a2.5 2.5 0 015 .5c0 1.5-2 1.5-2.5 3M12 17h.01"
+                    />
+                  </svg>
+                </div>
+                <div class="m-text">Help</div>
+                <span class="chev">›</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8. CONSENT CENTER -->
+          <div class="screen" id="scr-consentcenter">
+            <div class="app-header">
+              <button class="back-btn" onclick="go('profile')">←</button>
+              <h2>Consent Center</h2>
+            </div>
+            <div class="scr-body">
+              <p style="font-size: 13px; color: var(--muted); margin-top: 0">
+                Change your mind anytime — it takes effect right away. No email,
+                no waiting.
+              </p>
+
+              <div class="consent-center-row">
+                <div class="cc-top">
+                  <div class="c-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#5B21B6"
+                      stroke-width="2"
+                    >
+                      <rect x="3" y="7" width="18" height="13" rx="2" />
+                      <path d="M8 7V5a4 4 0 018 0v2" />
+                    </svg>
+                  </div>
+                  <div class="t">Order &amp; delivery details</div>
+                  <div class="switch locked on"><div class="knob"></div></div>
+                </div>
+                <div class="cc-meta">Always on — needed to deliver orders</div>
+              </div>
+
+              <div class="consent-center-row">
+                <div class="cc-top">
+                  <div class="c-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#5B21B6"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z"
+                      />
+                    </svg>
+                  </div>
+                  <div class="t">Location</div>
+                  <div
+                    class="switch on"
+                    id="sw-cc-location"
+                    onclick="toggleCC('sw-cc-location', 'Location')"
+                  >
+                    <div class="knob"></div>
+                  </div>
+                </div>
+                <div class="cc-meta">Given at sign-up</div>
+              </div>
+
+              <div class="consent-center-row">
+                <div class="cc-top">
+                  <div class="c-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#5B21B6"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M3 8l9 6 9-6M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1z"
+                      />
+                    </svg>
+                  </div>
+                  <div class="t">Marketing messages</div>
+                  <div
+                    class="switch"
+                    id="sw-cc-marketing"
+                    onclick="toggleCC('sw-cc-marketing', 'Marketing messages')"
+                  >
+                    <div class="knob"></div>
+                  </div>
+                </div>
+                <div class="cc-meta">Off by default</div>
+              </div>
+
+              <div class="consent-center-row">
+                <div class="cc-top">
+                  <div class="c-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#5B21B6"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M19 14c1.5-1.5 2-3 2-4.5A4.5 4.5 0 0016.5 5c-1.5 0-2.5.5-4.5 2.5C10 5.5 9 5 7.5 5A4.5 4.5 0 003 9.5C3 11 3.5 12.5 5 14l7 7 7-7z"
+                      />
+                    </svg>
+                  </div>
+                  <div class="t">Health data (Pharmacy orders)</div>
+                  <div
+                    class="switch on"
+                    id="sw-cc-health"
+                    onclick="toggleCC('sw-cc-health', 'Health data')"
+                  >
+                    <div class="knob"></div>
+                  </div>
+                </div>
+                <div class="cc-meta">
+                  Given separately, when you first ordered medicine
+                </div>
+              </div>
+            </div>
+            <div class="footer-cta">
+              <button class="primary-btn" onclick="go('summary')">Done</button>
+            </div>
+            <div class="toast" id="toast">
+              <div class="dot"></div>
+              <div id="toast-text"></div>
+            </div>
+          </div>
+
+          <!-- 9. SUMMARY -->
+          <div class="screen" id="scr-summary">
+            <div
+              class="scr-body"
+              style="
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                flex: 1;
+              "
+            >
+              <h2 style="text-align: center; margin-bottom: 22px">
+                You're always in control
+              </h2>
+              <div class="recap-row">
+                <div class="rc">✓</div>
+                <p>
+                  <b>Sensitive data asked for separately</b>Health data got its
+                  own clear consent — not bundled with groceries.
+                </p>
+              </div>
+              <div class="recap-row">
+                <div class="rc">✓</div>
+                <p>
+                  <b>Withdraw anytime, instantly</b>No email, no 5-day wait —
+                  changes apply the moment you tap.
+                </p>
+              </div>
+              <div class="recap-row">
+                <div class="rc">✓</div>
+                <p>
+                  <b>Marketing is off by default</b>You choose to opt in — it's
+                  never assumed.
+                </p>
+              </div>
+              <button
+                class="primary-btn"
+                style="margin-top: 10px"
+                onclick="go('splash')"
+              >
+                Restart demo
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div>
+
+      <div class="progress" id="progress"></div>
+      <p class="hint">
+        Tip: tap <b>Pharmacy</b> on the home screen to see the sensitive-data
+        consent step, then walk through <b>Consent Center</b> to withdraw it
+        instantly.
+      </p>
+    </div>
+
+    <script>
+      const order = [
+        "splash",
+        "signup",
+        "home",
+        "sensitive",
+        "pharmacy",
+        "confirm",
+        "profile",
+        "consentcenter",
+        "summary",
+      ];
+      const progressEl = document.getElementById("progress");
+      order.forEach((id, i) => {
+        const d = document.createElement("div");
+        d.className = "d" + (i === 0 ? " on" : "");
+        d.id = "dot-" + id;
+        progressEl.appendChild(d);
+      });
+
+      function go(id) {
+        order.forEach((o) => {
+          document.getElementById("scr-" + o).classList.remove("active");
+          document.getElementById("dot-" + o).classList.remove("on");
+        });
+        document.getElementById("scr-" + id).classList.add("active");
+        document.getElementById("dot-" + id).classList.add("on");
+      }
+
+      function toggleSwitch(id) {
+        document.getElementById(id).classList.toggle("on");
+      }
+
+      function toggleHealth() {
+        const sw = document.getElementById("sw-health");
+        sw.classList.toggle("on");
+        document.getElementById("btn-health-continue").disabled =
+          !sw.classList.contains("on");
+      }
+
+      function toggleCC(id, label) {
+        const sw = document.getElementById(id);
+        sw.classList.toggle("on");
+        const nowOn = sw.classList.contains("on");
+        showToast(
+          nowOn
+            ? `${label} turned back on — takes effect immediately.`
+            : `Withdrawn. We've stopped using "${label}" — no email, no waiting.`,
+        );
+      }
+
+      let toastTimer;
+      function showToast(text) {
+        const t = document.getElementById("toast");
+        document.getElementById("toast-text").textContent = text;
+        t.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+      }
+    </script>
+  </body>
+</html>
